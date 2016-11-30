@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>RSA 前端信息加密解决方案</title>
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        body,
+        ul,
+        li {
+            padding: 0px;
+            margin: 0px;
+        }
+
+        .title {
+            line-height: 50px;
+        }
+
+        .bg-gray {
+            border: #E2E2E2 1px solid;
+            background: #F4F4F4;
+            padding: 10px;
+        }
+
+        ul,
+        li {
+            line-height: 30px;
+        }
+
+        .code-1 {
+            color: red
+        }
+    </style>
+</head>
+
+<body>
+    <div style="position:relative;">
+        <div class="left bg-gray" style="width: 180px; height: 100%; float: left; position: absolute; ">
+            <ul style="position: fixed; ">
+                <li><a href="#yl">原理</a></li>
+                <li><a href="#mysc">私钥</a></li>
+                <li><a href="#gysc">公钥</a></li>
+                <li><a href="#FE-USE">前端如何使用</a></li>
+                <li><a href="#demo">DEMO</a></li>
+            </ul>
+        </div>
+        <div class="right" style=" margin-left: 220px; overflow: hidden;">
+            <h1>技术背景 </h1>
+            <p>RSA是被研究得最广泛的公钥算法，从提出到现在的三十多年里，经历了各种攻击的考验，普遍认为是目前最优秀的公钥方案之一。balabalabalabalabalabalabala·······················</p>
+            <h1 id="yl">原理</h1>
+            <div class="bg-gray">
+                <p style="color:red">前端每次有需要加密请求的时候，服务端都会生成一个密钥对，然后把公钥发给前端，前端使用拿到的公钥对需要加密的字段进行加密后，再把加密后的 密文 和公钥 一起发送给服务端，这时候服务端会用 发送过来的公钥，查询到匹配的私钥，然后使用 私钥以及 加密后的 密文 进行解密</p>
+            </div>
+            <h1 id="mysc">秘钥如何生成</h1>
+
+            <h3>私钥</h3>
+            <div class="title">
+                在你的终端（基于Unix的OS）键入以下命令。
+            </div>
+            <div class="bg-gray">
+                openssl genrsa -out rsa_1024_priv.pem 1024
+            </div>
+            <div class="title">
+                - 这将生成私钥，可以通过执行以下命令查看...
+            </div>
+            <div class="bg-gray">
+                cat rsa_1024_priv.pem
+            </div>
+
+            <div class="title">
+                现在，把私钥复制粘贴在需要的地方吧。
+            </div>
+            <h3 id="gysc">公钥</h3>
+            <div class="title">
+                下一步，您可以通过执行以下命令获取公钥。
+            </div>
+            <div class="bg-gray">
+                openssl rsa -pubout -in rsa_1024_priv.pem -out rsa_1024_pub.pem
+            </div>
+            <div class="title">
+                您可以通过执行以下命令查看公钥。
+            </div>
+            <div class="bg-gray">
+                cat rsa_1024_pub.pem
+            </div>
+
+            <div class="title">
+                现在，把公钥复制粘贴在需要的地方吧。
+            </div>
+            <h1 id="FE-USE">前端是如何使用</h1>
+            <h3>范例</h3>
+            <h5 class="pl-k">React 看这里</h5>
+            <pre class="bg-gray" style="font-family: '微软雅黑','苹方'; line-height:24px; font-size:  13px;">
+    import React, { Component, PropTypes } from 'react';
+    import {hashHistory,Link} from 'react-router';
+    import {Promise} from 'es6-promise';
+
+    import {JSEncrypt} from '../common/jsencrypt';
+
+
+    class Example extends Component{
+        constructor (props) {
+            super(props);
+        }
+
+        submitFn(){
+          <span class="pl-k">
+            /**
+             * Ps:   1、正常情况下公钥都是由服务端生成好后传递到前端来，前端获取之后，在进行加密，这里为了直接展示就 写在页面上了。
+             *         2、这里没有做验证，在真实项目中不要忘了做验证哟。
+             **/
+            </span>
+            // 实例化对象
+            <span class="pl-k">let</span> encrypt<span class="pl-k"> = new </span><span class="pl-en">JSEncrypt</span>();
+
+            <span class="pl-k">let</span> privateKey <span class="pl-k">=</span> this.<span class="pl-s">refs.privateKey.getDOMNode</span>(),
+                  publicKey <span class="pl-k">=</span> this.<span class="pl-s">refs.publicKey.getDOMNode</span>(),
+                  loginName <span class="pl-k">=</span> this.<span class="pl-s">refs.loginName.getDOMNode</span>().<span class="pl-en">value</span>,
+                  loginPwd <span class="pl-k">=</span> '';
+
+            <span class="pl-k">if</span>(<span class="pl-s">publicKey</span>){
+                // 调用后端传递到前端的公钥
+                <span class="pl-s">encrypt</span>.<span class="pl-en">setPublicKey</span>( <span class="pl-s">publicKey</span>.<span class="pl-en">value</span> );
+
+                // 使用加载了公钥后的对象针对密码进行加密
+                loginPwd = <span class="pl-s">encrypt</span>.<span class="pl-en">encrypt</span>( <span class="pl-s">loginPwd</span>.<span class="pl-en">value</span> );
+
+                this.<span class="pl-s">formSubmitFn</span>({
+                    pubKey:publicKey,  // 公钥
+                    loginName:loginName.value,
+                    loginPwd:loginPwd  //密文
+                })
+            }<span class="pl-k">else</span>{
+                console.log('加密失败')
+            }
+        }
+
+        formSubmitFn(data){
+            // 通过 Ajax 提交信息
+        }
+
+        render(){
+            return (
+                &lt;div className="clearfix"&gt;
+                  &lt;!-- 这里是公钥 -- &gt;
+                   &lt;textarea name="" id="publicKey" ref="publicKey" style={{display:'none'}}&gt;
+                   -----BEGIN PUBLIC KEY-----
+                    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDlOJu6TyygqxfWT7eLtGDwajtN
+                    FOb9I5XRb6khyfD1Yt3YiCgQWMNW649887VGJiGr/L5i2osbl8C9+WJTeucF+S76
+                    xFxdU6jE0NQ+Z+zEdhUTooNRaY5nZiu5PgDB0ED/ZKBUSLKL7eibMxZtMlUDHjm4
+                    gwQco1KRMDSmXSMkDwIDAQAB
+                    -----END PUBLIC KEY-----
+                   &lt;/textarea&gt;
+
+                   &lt;!-- 这里是私钥 -- &gt;
+                   &lt;textarea name="" id="pivateKey" ref="pivateKey" style={{display:'none'}}&gt;
+                    -----BEGIN RSA PRIVATE KEY-----
+                    MIICXQIBAAKBgQDlOJu6TyygqxfWT7eLtGDwajtNFOb9I5XRb6khyfD1Yt3YiCgQ
+                    WMNW649887VGJiGr/L5i2osbl8C9+WJTeucF+S76xFxdU6jE0NQ+Z+zEdhUTooNR
+                    aY5nZiu5PgDB0ED/ZKBUSLKL7eibMxZtMlUDHjm4gwQco1KRMDSmXSMkDwIDAQAB
+                    AoGAfY9LpnuWK5Bs50UVep5c93SJdUi82u7yMx4iHFMc/Z2hfenfYEzu+57fI4fv
+                    xTQ//5DbzRR/XKb8ulNv6+CHyPF31xk7YOBfkGI8qjLoq06V+FyBfDSwL8KbLyeH
+                    m7KUZnLNQbk8yGLzB3iYKkRHlmUanQGaNMIJziWOkN+N9dECQQD0ONYRNZeuM8zd
+                    8XJTSdcIX4a3gy3GGCJxOzv16XHxD03GW6UNLmfPwenKu+cdrQeaqEixrCejXdAF
+                    z/7+BSMpAkEA8EaSOeP5Xr3ZrbiKzi6TGMwHMvC7HdJxaBJbVRfApFrE0/mPwmP5
+                    rN7QwjrMY+0+AbXcm8mRQyQ1+IGEembsdwJBAN6az8Rv7QnD/YBvi52POIlRSSIM
+                    V7SwWvSK4WSMnGb1ZBbhgdg57DXaspcwHsFV7hByQ5BvMtIduHcT14ECfcECQATe
+                    aTgjFnqE/lQ22Rk0eGaYO80cc643BXVGafNfd9fcvwBMnk0iGX0XRsOozVt5Azil
+                    psLBYuApa66NcVHJpCECQQDTjI2AQhFc1yRnCU/YgDnSpJVm1nASoRUnU8Jfm3Oz
+                    uku7JUXcVpt08DFSceCEX9unCuMcT72rAQlLpdZir876
+                    -----END RSA PRIVATE KEY-----
+                   &lt;/textarea&gt;
+                   &lt;input type="text" id="loginName" ref="loginName" /&gt;
+                   &lt;input type="password" id="loginPwd" ref="loginPwd" /&gt;
+                   &lt;buttom id="" onClick={this.submitFn.bind(this)}&gt;提交&lt;/buttom&gt;
+                &lt;/div>
+            )
+        }
+    };
+    export default Example;
+
+   </pre>
+            <h5>页面引用版本</h5>
+            <pre class="bg-gray" style="font-family: '微软雅黑','苹方'; line-height:24px; font-size:  13px;">&lt;!doctype html&gt;
+        &lt;html&gt;
+          &lt;head&gt;
+            &lt;title&gt;JavaScript RSA Encryption&lt;/title&gt;
+
+            &lt;script src="http://code.jquery.com/jquery-1.8.3.min.js"&gt;&lt;/script&gt;
+
+            // 引入JS加密库文件
+            &lt;script src="bin/jsencrypt.min.js"&gt;&lt;/script&gt;
+          &lt;/head&gt;
+          &lt;body&gt;
+            &lt;label for="privkey"&gt;Private Key&lt;/label&gt;&lt;br/&gt;
+            &lt;textarea id="privkey" rows="15" cols="65"&gt;-----BEGIN RSA PRIVATE KEY-----
+        MIICXQIBAAKBgQDlOJu6TyygqxfWT7eLtGDwajtNFOb9I5XRb6khyfD1Yt3YiCgQ
+        WMNW649887VGJiGr/L5i2osbl8C9+WJTeucF+S76xFxdU6jE0NQ+Z+zEdhUTooNR
+        aY5nZiu5PgDB0ED/ZKBUSLKL7eibMxZtMlUDHjm4gwQco1KRMDSmXSMkDwIDAQAB
+        AoGAfY9LpnuWK5Bs50UVep5c93SJdUi82u7yMx4iHFMc/Z2hfenfYEzu+57fI4fv
+        xTQ//5DbzRR/XKb8ulNv6+CHyPF31xk7YOBfkGI8qjLoq06V+FyBfDSwL8KbLyeH
+        m7KUZnLNQbk8yGLzB3iYKkRHlmUanQGaNMIJziWOkN+N9dECQQD0ONYRNZeuM8zd
+        8XJTSdcIX4a3gy3GGCJxOzv16XHxD03GW6UNLmfPwenKu+cdrQeaqEixrCejXdAF
+        z/7+BSMpAkEA8EaSOeP5Xr3ZrbiKzi6TGMwHMvC7HdJxaBJbVRfApFrE0/mPwmP5
+        rN7QwjrMY+0+AbXcm8mRQyQ1+IGEembsdwJBAN6az8Rv7QnD/YBvi52POIlRSSIM
+        V7SwWvSK4WSMnGb1ZBbhgdg57DXaspcwHsFV7hByQ5BvMtIduHcT14ECfcECQATe
+        aTgjFnqE/lQ22Rk0eGaYO80cc643BXVGafNfd9fcvwBMnk0iGX0XRsOozVt5Azil
+        psLBYuApa66NcVHJpCECQQDTjI2AQhFc1yRnCU/YgDnSpJVm1nASoRUnU8Jfm3Oz
+        uku7JUXcVpt08DFSceCEX9unCuMcT72rAQlLpdZir876
+        -----END RSA PRIVATE KEY-----&lt;/textarea&gt;&lt;br/&gt;
+            &lt;label for="pubkey"&gt;Public Key&lt;/label&gt;&lt;br/&gt;
+            &lt;textarea id="pubkey" rows="15" cols="65"&gt;-----BEGIN PUBLIC KEY-----
+        MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDlOJu6TyygqxfWT7eLtGDwajtN
+        FOb9I5XRb6khyfD1Yt3YiCgQWMNW649887VGJiGr/L5i2osbl8C9+WJTeucF+S76
+        xFxdU6jE0NQ+Z+zEdhUTooNRaY5nZiu5PgDB0ED/ZKBUSLKL7eibMxZtMlUDHjm4
+        gwQco1KRMDSmXSMkDwIDAQAB
+        -----END PUBLIC KEY-----&lt;/textarea&gt;&lt;br/&gt;
+            &lt;label for="input"&gt;Text to encrypt:&lt;/label&gt;&lt;br/&gt;
+            &lt;textarea id="input" name="input" type="text" rows=4 cols=70&gt;This is a test!&lt;/textarea&gt;&lt;br/&gt;
+            &lt;input id="testme" type="button" value="Test Me!!!" /&gt;&lt;br/&gt;
+                        &lt;script type="text/javascript"&gt;
+
+
+               <span class="code-1" >
+                $(document).ready(function(){
+
+                      // 加密
+                      // 实例化对象
+                      var encrypt = new JSEncrypt();
+
+                      // 调用后端传递到前端的公钥
+                      encrypt.setPublicKey($('#pubkey').val());
+
+                      // 使用加载了公钥后的对象针对密码进行加密
+                      var encrypted = encrypt.encrypt($('#password').val());
+
+                      ==============================================================================
+
+                      // 解密
+                      // 实例化对象
+                      var decrypt = new JSEncrypt();
+
+                      // 调用预先 生成好的和公钥相匹配的 私钥
+                      decrypt.setPrivateKey($('#privkey').val());
+
+                      //  使用加载了私钥后的对象针对密文进行解密
+                      var uncrypted = decrypt.decrypt(encrypted);
+
+                      // 一个简单的检查，看看是否正常工作。
+                      if (uncrypted == $('#input').val()) {
+                        alert('OK 成功啦');
+                      }
+                      else {
+                        alert('报错啦');
+                      }
+                })
+            </span>
+            &lt;/script&gt;
+          &lt;/body&gt;
+        &lt;/html&gt;</pre>
+
+            <h1 id="demo">DEMO</h1>
+            <div class="bg-gray">
+                <div class="row">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h1>RSA 信息加密解决方案</h1></div>
+                        <div class="panel-body">
+                            <div class="">引入库文件实例化后，可以通过 getKey 来获取 公钥私钥，不推荐这种方式 </div>
+                            <h3 class="">Key Size （设置 秘钥的 位数  ， 默认是 1024  ）</h3>
+                            <div class="col-lg-2">
+                                <div class="btn-group">
+                                    <div class="input-group">
+                                        <ul class="dropdown-menu">
+                                            <li><a class="change-key-size" data-value="512" href="#">512 bit</a></li>
+                                            <li><a class="change-key-size" data-value="1024" href="#">1024 bit</a></li>
+                                            <li><a class="change-key-size" data-value="2048" href="#">2048 bit</a></li>
+                                            <li><a class="change-key-size" data-value="4096" href="#">4096 bit</a></li>
+                                        </ul>
+                                        <button class="btn btn-default dropdown-toggle" id="key-size" type="button" data-value="1024" data-toggle="dropdown">1024 bit <span class="caret"></span></button>
+                                    </div>
+                                </div>
+                                <br>&nbsp;<br>
+                                <button id="generate" class="btn btn-primary">获取新的秘钥</button>
+                                <br>&nbsp;<br>
+                                <span><i><small id="time-report"></small></i></span>
+                                <br>&nbsp;<br>
+                                <label for="async-ck"><input id="async-ck" type="checkbox"> Async</label>
+                            </div>
+                            <div class="col-lg-10">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <label for="privkey">Private Key  私钥</label><br/>
+                                        <small>
+              <textarea id="privkey" rows="15" style="width:100%"></textarea>
+            </small>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label for="pubkey">Public Key  公钥</label><br/>
+                                        <small><textarea id="pubkey" rows="15" style="width:100%" readonly="readonly"></textarea></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3>RSA Encryption Test</h3></div>
+                        <div class="panel-body">
+                            <div class="col-lg-5">
+                                <label for="input">需要加密的内容:</label><br/>
+                                <textarea id="input" name="input" style="width: 100%" rows="4">这是一条加密测试信息!</textarea>
+                            </div>
+                            <div class="col-lg-2">
+                                <label>&nbsp;</label><br/>
+                                <button id="execute" class="btn btn-primary">加密 / 解密 (Encrypt / Decrypt)</button>
+                            </div>
+                            <div class="col-lg-5">
+                                <label for="crypted">加密后的内容 ( Encrypted )</label><br/>
+                                <textarea id="crypted" name="crypted" style="width: 100%" rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <script src="//cdn.staticfile.org/jquery/1.9.1/jquery.min.js"></script>
+                <script src="./js/jsencrypt.js"></script>
+
+                <script type="text/javascript">
+                    $(function() {
+
+                        //Change the key size value for new keys
+                        $(".change-key-size").each(function(index, value) {
+                            var el = $(value);
+                            var keySize = el.attr('data-value');
+                            el.click(function(e) {
+                                var button = $('#key-size');
+                                button.attr('data-value', keySize);
+                                button.html(keySize + ' bit <span class="caret"></span>');
+                                e.preventDefault();
+                            });
+                        });
+
+                        // Execute when they click the button.
+                        $('#execute').click(function() {
+
+                            // Create the encryption object.
+                            var crypt = new JSEncrypt();
+
+                            // Set the private.
+                            crypt.setPrivateKey($('#privkey').val());
+                            //return;
+                            // If no public key is set then set it here...
+                            var pubkey = $('#pubkey').val();
+                            if (!pubkey) {
+                                $('#pubkey').val(crypt.getPublicKey());
+                            }
+
+                            // Get the input and crypted values.
+                            var input = $('#input').val(); // 需要加密的内容
+                            var crypted = $('#crypted').val(); // 加密后的内容
+
+                            // Alternate the values.
+                            if (input) {
+                                $('#crypted').val(crypt.encrypt(input));
+                                $('#input').val('');
+                            } else if (crypted) {
+                                var decrypted = crypt.decrypt(crypted);
+                                if (!decrypted)
+                                    decrypted = 'This is a test!';
+                                $('#input').val(decrypted);
+                                $('#crypted').val('');
+                            }
+                        });
+
+                        var generateKeys = function() {
+                            var sKeySize = $('#key-size').attr('data-value');
+                            var keySize = parseInt(sKeySize);
+                            var crypt = new JSEncrypt({
+                                default_key_size: keySize
+                            });
+                            var async = $('#async-ck').is(':checked');
+                            var dt = new Date();
+                            var time = -(dt.getTime());
+                            if (async) {
+                                $('#time-report').text('.');
+                                var load = setInterval(function() {
+                                    var text = $('#time-report').text();
+                                    $('#time-report').text(text + '.');
+                                }, 500);
+                                crypt.getKey(function() {
+                                    clearInterval(load);
+                                    dt = new Date();
+                                    time += (dt.getTime());
+                                    $('#time-report').text('Generated in ' + time + ' ms');
+                                    $('#privkey').val(crypt.getPrivateKey());
+                                    $('#pubkey').val(crypt.getPublicKey());
+                                });
+                                return;
+                            }
+                            crypt.getKey();
+                            dt = new Date();
+                            time += (dt.getTime());
+                            $('#time-report').text('Generated in ' + time + ' ms');
+                            $('#privkey').val(crypt.getPrivateKey());
+                            $('#pubkey').val(crypt.getPublicKey());
+                        };
+
+                        // If they wish to generate new keys.
+                        $('#generate').click(generateKeys);
+                        generateKeys();
+                    });
+                </script>
+            </div>
+
+            <h1>参考：</h1>
+            <div class="bg-gray">
+                <p>官方网站：<a href="http://travistidwell.com/jsencrypt">http://travistidwell.com/jsencrypt</a></p>
+                <p>Github：<a href="https://github.com/travist/jsencrypt">https://github.com/travist/jsencrypt</a></p>
+            </div>
+
+
+
+        </div>
+    </div>
+
+
+</body>
+
+</html>
